@@ -29,6 +29,7 @@ enum GeminiConfig {
   static let openClawHost = "http://192.168.0.117"
   static let openClawPort = 18789
   static let openClawHookToken = "REDACTED_OPENCLAW_HOOK_TOKEN"
+  static let openClawGatewayToken = "REDACTED_OPENCLAW_GATEWAY_TOKEN"
 
   static func websocketURL() -> URL? {
     guard !apiKey.isEmpty else { return nil }

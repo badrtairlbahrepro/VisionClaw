@@ -88,7 +88,7 @@ class OpenClawBridge: ObservableObject {
 
     var request = URLRequest(url: url)
     request.httpMethod = "POST"
-    request.setValue("Bearer \(GeminiConfig.openClawHookToken)", forHTTPHeaderField: "Authorization")
+    request.setValue("Bearer \(GeminiConfig.openClawGatewayToken)", forHTTPHeaderField: "Authorization")
     request.setValue("application/json", forHTTPHeaderField: "Content-Type")
 
     let body: [String: Any] = [
