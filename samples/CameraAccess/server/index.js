@@ -6,13 +6,36 @@ const { WebSocketServer } = require("ws");
 const PORT = process.env.PORT || 8080;
 const rooms = new Map(); // roomCode -> { creator: ws, viewer: ws }
 
-// Cache TURN credentials (refresh every 20 minutes)
+// TURN credentials: use Metered.ca (env vars) or fall back to Cloudflare speed test
+const TURN_SERVER = process.env.TURN_SERVER;       // e.g. "a]]].metered.live:443"
+const TURN_USERNAME = process.env.TURN_USERNAME;
+const TURN_CREDENTIAL = process.env.TURN_CREDENTIAL;
+
 let turnCache = { data: null, expires: 0 };
 
 async function fetchTurnCredentials() {
   if (turnCache.data && Date.now() < turnCache.expires) {
     return turnCache.data;
   }
+
+  // Use configured TURN server if env vars are set
+  if (TURN_SERVER && TURN_USERNAME && TURN_CREDENTIAL) {
+    const creds = {
+      urls: [
+        `stun:${TURN_SERVER}`,
+        `turn:${TURN_SERVER}?transport=udp`,
+        `turn:${TURN_SERVER}?transport=tcp`,
+        `turns:${TURN_SERVER}?transport=tcp`,
+      ],
+      username: TURN_USERNAME,
+      credential: TURN_CREDENTIAL,
+    };
+    turnCache = { data: creds, expires: Date.now() + 60 * 60 * 1000 };
+    console.log("[TURN] Using configured TURN server:", TURN_SERVER);
+    return creds;
+  }
+
+  // Fallback: Cloudflare speed test TURN
   try {
     const resp = await fetch("https://speed.cloudflare.com/turn-creds");
     const creds = await resp.json();

@@ -146,6 +146,15 @@ extension WebRTCClient: RTCPeerConnectionDelegate {
   func peerConnection(
     _ peerConnection: RTCPeerConnection, didGenerate candidate: RTCIceCandidate
   ) {
+    // Log candidate type for debugging NAT traversal
+    let sdp = candidate.sdp
+    if sdp.contains("relay") {
+      NSLog("[WebRTC] ICE candidate: RELAY (TURN)")
+    } else if sdp.contains("srflx") {
+      NSLog("[WebRTC] ICE candidate: SERVER REFLEXIVE (STUN)")
+    } else if sdp.contains("host") {
+      NSLog("[WebRTC] ICE candidate: HOST (local)")
+    }
     delegate?.webRTCClient(self, didGenerateCandidate: candidate)
   }
 
