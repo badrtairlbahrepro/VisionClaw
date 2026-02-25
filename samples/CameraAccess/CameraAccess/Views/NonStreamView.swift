@@ -20,10 +20,8 @@ import SwiftUI
 struct NonStreamView: View {
   @ObservedObject var viewModel: StreamSessionViewModel
   @ObservedObject var wearablesVM: WearablesViewModel
-  @ObservedObject var fileExplorerVM: FileExplorerViewModel
   @State private var sheetHeight: CGFloat = 300
   @State private var showSettings = false
-  @State private var showFileExplorer = false
 
   var body: some View {
     ZStack {
@@ -35,14 +33,6 @@ struct NonStreamView: View {
           Menu {
             Button("Settings") {
               showSettings = true
-            }
-            Button {
-              showFileExplorer = true
-            } label: {
-              Label(
-                "Photos (\(fileExplorerVM.savedPhotos.count))",
-                systemImage: "photo.on.rectangle.angled"
-              )
             }
             Button("Disconnect", role: .destructive) {
               wearablesVM.disconnectGlasses()
@@ -138,9 +128,6 @@ struct NonStreamView: View {
     }
     .sheet(isPresented: $showSettings) {
       SettingsView()
-    }
-    .sheet(isPresented: $showFileExplorer) {
-      FileExplorerView(viewModel: fileExplorerVM)
     }
     .sheet(isPresented: $wearablesVM.showGettingStartedSheet) {
       if #available(iOS 16.0, *) {

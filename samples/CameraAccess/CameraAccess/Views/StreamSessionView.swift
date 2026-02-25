@@ -21,7 +21,6 @@ struct StreamSessionView: View {
   @StateObject private var viewModel: StreamSessionViewModel
   @StateObject private var geminiVM = GeminiSessionViewModel()
   @StateObject private var webrtcVM = WebRTCSessionViewModel()
-  @StateObject private var fileExplorerVM = FileExplorerViewModel()
 
   init(wearables: WearablesInterface, wearablesVM: WearablesViewModel) {
     self.wearables = wearables
@@ -36,13 +35,12 @@ struct StreamSessionView: View {
         StreamView(viewModel: viewModel, wearablesVM: wearablesViewModel, geminiVM: geminiVM, webrtcVM: webrtcVM)
       } else {
         // Pre-streaming setup view with permissions and start button
-        NonStreamView(viewModel: viewModel, wearablesVM: wearablesViewModel, fileExplorerVM: fileExplorerVM)
+        NonStreamView(viewModel: viewModel, wearablesVM: wearablesViewModel)
       }
     }
     .task {
       viewModel.geminiSessionVM = geminiVM
       viewModel.webrtcSessionVM = webrtcVM
-      viewModel.fileExplorerVM = fileExplorerVM
       geminiVM.streamingMode = viewModel.streamingMode
     }
     .onChange(of: viewModel.streamingMode) { newMode in

@@ -57,9 +57,6 @@ class StreamSessionViewModel: ObservableObject {
   @Published var capturedPhoto: UIImage?
   @Published var showPhotoPreview: Bool = false
 
-  // File explorer integration — persists captured photos to disk
-  var fileExplorerVM: FileExplorerViewModel?
-
   // Gemini Live integration
   var geminiSessionVM: GeminiSessionViewModel?
 
@@ -163,8 +160,6 @@ class StreamSessionViewModel: ObservableObject {
         if let uiImage = UIImage(data: photoData.data) {
           self.capturedPhoto = uiImage
           self.showPhotoPreview = true
-          // Persist to file explorer so the photo survives session teardown
-          self.fileExplorerVM?.savePhoto(uiImage)
         }
       }
     }
