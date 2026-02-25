@@ -49,11 +49,34 @@ fun SettingsScreen(
     var webrtcSignalingURL by remember { mutableStateOf(SettingsManager.webrtcSignalingURL) }
     var showResetDialog by remember { mutableStateOf(false) }
 
+    val hostError: String? = run {
+        val trimmed = openClawHost.trim()
+        when {
+            trimmed.isEmpty() -> null
+            !trimmed.startsWith("http://") && !trimmed.startsWith("https://") ->
+                "Must start with http:// or https://"
+            runCatching { java.net.URL(trimmed).host.isNotEmpty() }.getOrDefault(false).not() ->
+                "Invalid URL format"
+            else -> null
+        }
+    }
+
+    val portError: String? = run {
+        val trimmed = openClawPort.trim()
+        val port = trimmed.toIntOrNull()
+        when {
+            trimmed.isEmpty() -> null
+            port == null || port !in 1..65535 -> "Must be a number between 1 and 65535"
+            else -> null
+        }
+    }
+
     fun save() {
         SettingsManager.geminiAPIKey = geminiAPIKey.trim()
         SettingsManager.geminiSystemPrompt = systemPrompt.trim()
-        SettingsManager.openClawHost = openClawHost.trim()
-        openClawPort.trim().toIntOrNull()?.let { SettingsManager.openClawPort = it }
+        if (hostError == null) SettingsManager.openClawHost = openClawHost.trim()
+        openClawPort.trim().toIntOrNull()?.takeIf { it in 1..65535 }
+            ?.let { SettingsManager.openClawPort = it }
         SettingsManager.openClawHookToken = openClawHookToken.trim()
         SettingsManager.openClawGatewayToken = openClawGatewayToken.trim()
         SettingsManager.webrtcSignalingURL = webrtcSignalingURL.trim()
@@ -116,6 +139,8 @@ fun SettingsScreen(
                 label = "Host",
                 placeholder = "http://your-mac.local",
                 keyboardType = KeyboardType.Uri,
+                isError = hostError != null,
+                supportingText = hostError,
             )
             MonoTextField(
                 value = openClawPort,
@@ -123,6 +148,8 @@ fun SettingsScreen(
                 label = "Port",
                 placeholder = "18789",
                 keyboardType = KeyboardType.Number,
+                isError = portError != null,
+                supportingText = portError,
             )
             MonoTextField(
                 value = openClawHookToken,
@@ -195,6 +222,8 @@ private fun MonoTextField(
     label: String,
     placeholder: String,
     keyboardType: KeyboardType = KeyboardType.Text,
+    isError: Boolean = false,
+    supportingText: String? = null,
 ) {
     OutlinedTextField(
         value = value,
@@ -205,5 +234,7 @@ private fun MonoTextField(
         textStyle = MaterialTheme.typography.bodyMedium.copy(fontFamily = FontFamily.Monospace),
         singleLine = true,
         keyboardOptions = KeyboardOptions(keyboardType = keyboardType),
+        isError = isError,
+        supportingText = supportingText?.let { msg -> { Text(msg) } },
     )
 }
