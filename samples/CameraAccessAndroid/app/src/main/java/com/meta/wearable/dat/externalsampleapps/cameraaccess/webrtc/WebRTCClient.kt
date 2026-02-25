@@ -128,9 +128,13 @@ class WebRTCClient(private val context: Context) {
 
         // Create video source + track with custom capturer
         val factory = peerConnectionFactory ?: return
-        videoSource = factory.createVideoSource(false) // false = not a screen cast
-        customCapturer = CustomVideoCapturer().apply { initialize(videoSource!!) }
-        localVideoTrack = factory.createVideoTrack("video0", videoSource).apply {
+        val source = factory.createVideoSource(false) ?: run { // false = not a screen cast
+            Log.e(TAG, "Failed to create video source")
+            return
+        }
+        videoSource = source
+        customCapturer = CustomVideoCapturer().apply { initialize(source) }
+        localVideoTrack = factory.createVideoTrack("video0", source).apply {
             setEnabled(true)
         }
         peerConnection?.addTrack(localVideoTrack, listOf("stream0"))

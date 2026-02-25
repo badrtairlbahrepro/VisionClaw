@@ -30,7 +30,7 @@ class ToolCallRouter(
             val taskDesc = call.args["task"]?.toString() ?: call.args.toString()
             val result = bridge.delegateTask(task = taskDesc, toolName = callName)
 
-            if (!coroutineContext[Job]!!.isCancelled) {
+            if (isActive) {
                 Log.d(TAG, "Result for $callName (id: $callId): $result")
                 val response = buildToolResponse(callId, callName, result)
                 sendResponse(response)

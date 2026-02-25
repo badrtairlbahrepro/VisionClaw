@@ -31,7 +31,7 @@ class GeminiLiveService: ObservableObject {
   private var receiveTask: Task<Void, Never>?
   private var connectContinuation: CheckedContinuation<Bool, Never>?
   private let delegate = WebSocketDelegate()
-  private var urlSession: URLSession!
+  private var urlSession: URLSession
   private let sendQueue = DispatchQueue(label: "gemini.send", qos: .userInitiated)
 
   init() {
