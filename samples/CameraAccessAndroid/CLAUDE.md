@@ -134,16 +134,29 @@ val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 ```kotlin
 // Secrets.kt (gitignored) — copier depuis Secrets.kt.example
 object Secrets {
-  const val GEMINI_API_KEY = "YOUR_GEMINI_API_KEY"
-  const val OPENCLAW_HOST = "http://YOUR_MAC_HOSTNAME.local"
-  const val OPENCLAW_PORT = 5000
-  const val OPENCLAW_HOOK_TOKEN = "YOUR_OPENCLAW_HOOK_TOKEN"
-  const val OPENCLAW_GATEWAY_TOKEN = "YOUR_OPENCLAW_GATEWAY_TOKEN"
-  const val WEBRTC_SIGNALING_URL = "ws://YOUR_MAC_IP:8080"
+  const val geminiAPIKey = "YOUR_GEMINI_API_KEY"
+  const val openClawHost = "https://openclaw.tondomaine.com"  // ou http://IP:18789
+  const val openClawPort = 443                                 // 443 si HTTPS, 18789 si direct
+  const val openClawHookToken = ""                             // non utilisé dans OpenClawBridge
+  const val openClawGatewayToken = "YOUR_OPENCLAW_GATEWAY_TOKEN"
+  const val webrtcSignalingURL = "wss://YOUR_SIGNALING_SERVER"
 }
 ```
 
-`SettingsManager` utilise DataStore Preferences, avec fallback sur `Secrets`.
+`SettingsManager` utilise SharedPreferences, avec fallback sur `Secrets`.
+Les valeurs sont modifiables à l'écran Settings (engrenage) sans rebuild.
+
+### OpenClaw — local vs VPS
+
+OpenClaw peut tourner sur un Mac local **ou** sur un VPS derrière un reverse proxy HTTPS :
+
+| Mode | `openClawHost` | `openClawPort` |
+|---|---|---|
+| Mac local (même réseau Wi-Fi) | `http://hostname.local` | `18789` |
+| VPS direct | `http://IP_VPS` | `18789` |
+| VPS via nginx HTTPS | `https://openclaw.domaine.com` | `443` |
+
+> `openClawHookToken` est présent dans `Secrets.kt` et `SettingsManager` mais **n'est pas utilisé** dans `OpenClawBridge.kt`. Seul `openClawGatewayToken` sert au header `Authorization: Bearer`.
 
 ## Build
 
@@ -155,10 +168,12 @@ object Secrets {
 
 Le keystore de debug (`sample.keystore`) est inclus dans le dépôt pour faciliter le build.
 
-GitHub Packages nécessite une `github_token` dans `gradle.properties` (ou `~/.gradle/gradle.properties`) pour télécharger le SDK DAT :
+GitHub Packages nécessite une `github_token` dans `local.properties` pour télécharger le SDK DAT :
 ```properties
 github_token=ghp_...
 ```
+
+> ⚠️ Le nom de la propriété est **`github_token`** (pas `gpr.token`) — `settings.gradle.kts` appelle explicitement `localProperties.getProperty("github_token")`.
 
 ## Parité iOS ↔ Android
 
@@ -188,3 +203,13 @@ Différences techniques :
   via `FileProvider` (déclaré dans `AndroidManifest.xml`)
 - Gemini et WebRTC sont mutuellement exclusifs (conflit audio) — désactiver l'un avant
   d'activer l'autre
+
+## Bugs connus et fixes appliqués
+
+### `ToolCallRouter.kt` — import `isActive` manquant
+`isActive` dans un bloc `scope.launch { }` nécessite l'import explicite :
+```kotlin
+import kotlinx.coroutines.isActive
+```
+Sans cet import, le build échoue avec `Unresolved reference: isActive`.
+**Statut : corrigé dans `v1.0.0`**
