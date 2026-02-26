@@ -38,11 +38,14 @@ class PhoneCameraManager(private val context: Context) {
                     .build()
 
                 imageAnalysis.setAnalyzer(executor) { imageProxy ->
-                    val bitmap = imageProxyToBitmap(imageProxy)
-                    if (bitmap != null) {
-                        onFrameCaptured?.invoke(bitmap)
+                    try {
+                        val bitmap = imageProxyToBitmap(imageProxy)
+                        if (bitmap != null) {
+                            onFrameCaptured?.invoke(bitmap)
+                        }
+                    } finally {
+                        imageProxy.close()
                     }
-                    imageProxy.close()
                 }
 
                 val cameraSelector = CameraSelector.DEFAULT_BACK_CAMERA

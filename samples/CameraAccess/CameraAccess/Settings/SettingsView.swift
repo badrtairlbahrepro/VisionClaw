@@ -13,6 +13,29 @@ struct SettingsView: View {
   @State private var webrtcSignalingURL: String = ""
   @State private var showResetConfirmation = false
 
+  private var hostError: String? {
+    let trimmed = openClawHost.trimmingCharacters(in: .whitespacesAndNewlines)
+    guard !trimmed.isEmpty else { return nil }
+    guard trimmed.hasPrefix("http://") || trimmed.hasPrefix("https://") else {
+      return "Must start with http:// or https://"
+    }
+    guard URL(string: trimmed)?.host != nil else {
+      return "Invalid URL format"
+    }
+    return nil
+  }
+
+  private var portError: String? {
+    let trimmed = openClawPort.trimmingCharacters(in: .whitespacesAndNewlines)
+    guard !trimmed.isEmpty else { return nil }
+    guard let port = Int(trimmed), (1...65535).contains(port) else {
+      return "Must be a number between 1 and 65535"
+    }
+    return nil
+  }
+
+  private var hasValidationErrors: Bool { hostError != nil || portError != nil }
+
   var body: some View {
     NavigationView {
       Form {
@@ -44,6 +67,9 @@ struct SettingsView: View {
               .disableAutocorrection(true)
               .keyboardType(.URL)
               .font(.system(.body, design: .monospaced))
+            if let error = hostError {
+              Text(error).font(.caption).foregroundColor(.red)
+            }
           }
 
           VStack(alignment: .leading, spacing: 4) {
@@ -53,6 +79,9 @@ struct SettingsView: View {
             TextField("18789", text: $openClawPort)
               .keyboardType(.numberPad)
               .font(.system(.body, design: .monospaced))
+            if let error = portError {
+              Text(error).font(.caption).foregroundColor(.red)
+            }
           }
 
           VStack(alignment: .leading, spacing: 4) {
@@ -110,6 +139,7 @@ struct SettingsView: View {
             dismiss()
           }
           .fontWeight(.semibold)
+          .disabled(hasValidationErrors)
         }
       }
       .alert("Reset Settings", isPresented: $showResetConfirmation) {
